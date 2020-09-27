@@ -14,15 +14,20 @@ endif
 .PHONY: init test dev run-like-prod lint requirements pipeline-dev
 
 export PIPENV_IGNORE_VIRTUALENVS=1
-export PYTHONPATH=./src
+export PYTHONPATH=./speedtest_influx_logger
 
-export NODE_NAME=dev
-export INFLUX_HOST=localhost
-export INFLUX_PORT=8086
-export INFLUX_USER=CHANGEME
-export INFLUX_PASS=CHANGEME
-export INFLUX_DB=internetspeed
-export TEST_FREQUENCY=1
+.PHONY: clean build publish exports
+
+build: clean
+	pipenv run python -m pip install --upgrade --quiet setuptools wheel twine
+	pipenv run python setup.py --quiet sdist bdist_wheel
+
+publish: build
+	pipenv run python -m twine check dist/*
+	pipenv run python -m twine upload dist/*
+
+clean:
+	rm -r build dist *.egg-info || true
 
 init:
 	pipenv --python ${PYTHON_VERSION}
@@ -34,5 +39,14 @@ start-db:
 stop-db:
 	docker-compose stop influx
 
-dev:
-	pipenv run python src/main.py
+exports:
+export NODE_NAME=dev
+export INFLUX_HOST=localhost
+export INFLUX_PORT=8086
+export INFLUX_USER=CHANGEME
+export INFLUX_PASS=CHANGEME
+export INFLUX_DB=internetspeed
+export TEST_FREQUENCY=1
+
+dev: exports
+	pipenv run python speedtest_influx_logger/main.py

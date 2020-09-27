@@ -14,7 +14,7 @@ import speedtest
 
 # Local Imports
 
-APP_VERSION = "0.0.2"
+APP_VERSION = "0.0.3"
 
 NODE_NAME = os.environ.get("NODE_NAME", "unknown_node")
 
@@ -53,9 +53,10 @@ def check_speed(speedtester):
         }
     }]
 
-    client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB)
+    if None not in [INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB]:
+        client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB)
+        client.write_points(speed_data)
 
-    client.write_points(speed_data)
     print("{} - Speedtest complete: {}/{}".format(
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             str(download),
@@ -63,14 +64,25 @@ def check_speed(speedtester):
         )
     )
 
-# try:
-schedule.every(TEST_FREQUENCY).minutes.do(check_speed, speedtest.Speedtest())
+def main():
 
-print(f"Starting Scheduler from '{NODE_NAME}' [v{APP_VERSION}]")
-print(f"Speedtest runs every {TEST_FREQUENCY} minutes")
+    if None in [INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB]:
+        for i in ["INFLUX_HOST", "INFLUX_PORT", "INFLUX_USER", "INFLUX_PASS", "INFLUX_DB"]:
+            if eval(i) is None:
+                print(f"{i} is not configured")
+        print()
+        print("Unable to send data to Influx as not configured")
 
-check_speed(speedtest.Speedtest())
+    schedule.every(TEST_FREQUENCY).minutes.do(check_speed, speedtest.Speedtest())
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+    print(f"Starting Scheduler from '{NODE_NAME}' [v{APP_VERSION}]")
+    print(f"Speedtest runs every {TEST_FREQUENCY} minutes")
+
+    check_speed(speedtest.Speedtest())
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+if __name__ == "__main__":
+    main()

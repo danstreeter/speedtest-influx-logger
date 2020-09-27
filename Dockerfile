@@ -6,7 +6,7 @@ RUN pip install --upgrade pip && pip install -r /requirements.txt
 
 
 RUN mkdir /app
-COPY ./src/main.py /app/main.py
+COPY ./speedtest_influx_logger/main.py /app/main.py
 
 RUN adduser -D appuser && chown -R appuser: /app
 USER appuser
