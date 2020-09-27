@@ -2,7 +2,7 @@ version: "3"
 services:
 
   app:
-    image: danstreeter/speedtest-influx:0.0.1
+    image: danstreeter/speedtest-influx:0.0.2
     environment:
       - INFLUX_HOST=influx
       - INFLUX_PORT=8086
