@@ -12,9 +12,9 @@ from setuptools import find_packages, setup
 # Local Imports
 
 DEPENDENCIES = [
-    "influxdb==5.2.3",
-    "speedtest-cli==2.1.2",
-    "schedule==0.6.0"
+    "requests==2.23.0",
+    "schedule==0.6.0",
+    "speedtest-cli==2.1.2"
 ]
 EXCLUDE_FROM_PACKAGES = ["contrib", "docs", "tests*"]
 CURDIR = os.path.abspath(os.path.dirname(__file__))

@@ -1,12 +1,13 @@
 # System Imports
 from datetime import datetime
+from distutils.util import strtobool
 import os
 import re
-import subprocess
+import requests
+from requests.auth import HTTPBasicAuth
 import time
 
 # Framework / Library Imports
-from influxdb import InfluxDBClient
 import schedule
 import speedtest
 
@@ -14,16 +15,17 @@ import speedtest
 
 # Local Imports
 
-APP_VERSION = "0.0.3"
+APP_VERSION = "0.0.4"
 
 NODE_NAME = os.environ.get("NODE_NAME", "unknown_node")
 
 INFLUX_HOST = os.environ.get("INFLUX_HOST", None)
-INFLUX_PORT = os.environ.get("INFLUX_PORT", None)
+INFLUX_PORT = ":"+str(os.environ.get("INFLUX_PORT", None))
 INFLUX_USER = os.environ.get("INFLUX_USER", None)
 INFLUX_PASS = os.environ.get("INFLUX_PASS", None)
 INFLUX_DB = os.environ.get("INFLUX_DB", None)
 TEST_FREQUENCY = int(os.environ.get("TEST_FREQUENCY", 60))
+
 
 def check_speed(speedtester):
     try:
@@ -36,33 +38,40 @@ def check_speed(speedtester):
 
         # Returns float of upload speed in bytes: 6458335.637879163
         upload = "{:.2f}".format(speedtester.upload()/1000000)
+        speed_data = {
+            "measurement": "internet_speed",
+            "tags": {
+                "host": NODE_NAME,
+                "client_version": APP_VERSION
+            },
+            "fields": {
+                "download": float(download),
+                "upload": float(upload),
+                "ping": float(ping)
+            }
+        }
+
+        if None not in [INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB]:
+            payload = f"internet_speed,host={NODE_NAME},client_version={APP_VERSION} download={float(download)},upload={float(upload)},ping={float(ping)} {time.time_ns()}"
+            res = requests.request(
+                "POST",
+                url=INFLUX_HOST+INFLUX_PORT+"/write?db="+INFLUX_DB,
+                data=payload,
+                auth=HTTPBasicAuth(INFLUX_USER, INFLUX_PASS)
+            )
+            print(res.status_code)
+            print(res.text)
+
+        print("{} - Speedtest complete: {}/{}".format(
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                str(download),
+                str(upload)
+            )
+        )
     except Exception as e:
         print("There was a problem")
         print(str(e))
 
-    speed_data = [{
-        "measurement": "internet_speed",
-        "tags": {
-            "host": NODE_NAME,
-            "client_version": APP_VERSION
-        },
-        "fields": {
-            "download": float(download),
-            "upload": float(upload),
-            "ping": float(ping)
-        }
-    }]
-
-    if None not in [INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB]:
-        client = InfluxDBClient(INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB)
-        client.write_points(speed_data)
-
-    print("{} - Speedtest complete: {}/{}".format(
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            str(download),
-            str(upload)
-        )
-    )
 
 def main():
 
