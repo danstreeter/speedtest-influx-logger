@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ___
 
+## `0.0.6` - 2021-05-11
+
+- Missed requirements file caused invalid 0.0.5 image.
+
 ## `0.0.5` - 2021-05-11
 
 - Upgraded the speedtest-cli package to 2.1.3 to address bugs it has with returned data.

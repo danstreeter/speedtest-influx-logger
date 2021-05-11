@@ -15,12 +15,12 @@ import speedtest
 
 # Local Imports
 
-APP_VERSION = "0.0.4"
+APP_VERSION = "0.0.6"
 
 NODE_NAME = os.environ.get("NODE_NAME", "unknown_node")
 
 INFLUX_HOST = os.environ.get("INFLUX_HOST", None)
-INFLUX_PORT = ":"+str(os.environ.get("INFLUX_PORT", None))
+INFLUX_PORT = ":" + str(os.environ.get("INFLUX_PORT", None))
 INFLUX_USER = os.environ.get("INFLUX_USER", None)
 INFLUX_PASS = os.environ.get("INFLUX_PASS", None)
 INFLUX_DB = os.environ.get("INFLUX_DB", None)
@@ -34,38 +34,34 @@ def check_speed(speedtester):
         ping = server["latency"]
 
         # Returns float of download speed in bytes: 23858332.89967406
-        download = "{:.2f}".format(speedtester.download()/1000000)
+        download = "{:.2f}".format(speedtester.download() / 1000000)
 
         # Returns float of upload speed in bytes: 6458335.637879163
-        upload = "{:.2f}".format(speedtester.upload()/1000000)
+        upload = "{:.2f}".format(speedtester.upload() / 1000000)
         speed_data = {
             "measurement": "internet_speed",
-            "tags": {
-                "host": NODE_NAME,
-                "client_version": APP_VERSION
-            },
+            "tags": {"host": NODE_NAME, "client_version": APP_VERSION},
             "fields": {
                 "download": float(download),
                 "upload": float(upload),
-                "ping": float(ping)
-            }
+                "ping": float(ping),
+            },
         }
 
         if None not in [INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB]:
             payload = f"internet_speed,host={NODE_NAME},client_version={APP_VERSION} download={float(download)},upload={float(upload)},ping={float(ping)} {time.time_ns()}"
             res = requests.request(
                 "POST",
-                url=INFLUX_HOST+INFLUX_PORT+"/write?db="+INFLUX_DB,
+                url=INFLUX_HOST + INFLUX_PORT + "/write?db=" + INFLUX_DB,
                 data=payload,
-                auth=HTTPBasicAuth(INFLUX_USER, INFLUX_PASS)
+                auth=HTTPBasicAuth(INFLUX_USER, INFLUX_PASS),
             )
             print(res.status_code)
             print(res.text)
 
-        print("{} - Speedtest complete: {}/{}".format(
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                str(download),
-                str(upload)
+        print(
+            "{} - Speedtest complete: {}/{}".format(
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), str(download), str(upload)
             )
         )
     except Exception as e:
@@ -76,7 +72,13 @@ def check_speed(speedtester):
 def main():
 
     if None in [INFLUX_HOST, INFLUX_PORT, INFLUX_USER, INFLUX_PASS, INFLUX_DB]:
-        for i in ["INFLUX_HOST", "INFLUX_PORT", "INFLUX_USER", "INFLUX_PASS", "INFLUX_DB"]:
+        for i in [
+            "INFLUX_HOST",
+            "INFLUX_PORT",
+            "INFLUX_USER",
+            "INFLUX_PASS",
+            "INFLUX_DB",
+        ]:
             if eval(i) is None:
                 print(f"{i} is not configured")
         print()
@@ -92,6 +94,7 @@ def main():
     while True:
         schedule.run_pending()
         time.sleep(1)
+
 
 if __name__ == "__main__":
     main()
