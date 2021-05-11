@@ -15,7 +15,7 @@ import speedtest
 
 # Local Imports
 
-APP_VERSION = "0.0.6"
+APP_VERSION = "0.0.7"
 
 NODE_NAME = os.environ.get("NODE_NAME", "unknown_node")
 

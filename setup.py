@@ -11,16 +11,13 @@ from setuptools import find_packages, setup
 
 # Local Imports
 
-DEPENDENCIES = [
-    "requests==2.23.0",
-    "schedule==0.6.0",
-    "speedtest-cli==2.1.2"
-]
+DEPENDENCIES = ["requests==2.23.0", "schedule==0.6.0", "speedtest-cli==2.1.3"]
 EXCLUDE_FROM_PACKAGES = ["contrib", "docs", "tests*"]
 CURDIR = os.path.abspath(os.path.dirname(__file__))
 
 with io.open(os.path.join(CURDIR, "README.md"), "r", encoding="utf-8") as f:
     README = f.read()
+
 
 def get_version():
     main_file = os.path.join(CURDIR, "speedtest_influx_logger", "main.py")
@@ -29,6 +26,7 @@ def get_version():
         match = _version_re.search(f.read())
         version = match.group("version") if match is not None else '"unknown"'
     return str(ast.literal_eval(version))
+
 
 setup(
     name="speedtest_influx_logger",
@@ -42,11 +40,13 @@ setup(
     include_package_data=True,
     keywords=[],
     scripts=[],
-    entry_points={"console_scripts": ["speedtest_influx=speedtest_influx_logger.main:main"]},
+    entry_points={
+        "console_scripts": ["speedtest_influx=speedtest_influx_logger.main:main"]
+    },
     zip_safe=False,
     install_requires=DEPENDENCIES,
     test_suite="tests.test_project",
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     # license and classifier list:
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     license="License :: OSI Approved :: MIT License",
