@@ -48,5 +48,11 @@ export INFLUX_PASS=CHANGEME
 export INFLUX_DB=internetspeed
 export TEST_FREQUENCY=1
 
+shell: exports
+	pipenv shell
+
 dev: exports
 	pipenv run python speedtest_influx_logger/main.py
+
+requirements:
+	pipenv lock -r > requirements.txt
